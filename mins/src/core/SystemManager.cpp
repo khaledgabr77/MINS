@@ -136,7 +136,6 @@ bool SystemManager::feed_measurement_imu(const ov_core::ImuData &imu) {
   // Insert IMU pose in the clone list
   if (!state->have_clone(state->time))
     state->clones.insert({state->time, state->imu->pose()});
-  PRINT2("IMU pose inserted, size: %d", state->clones.size());
 
   // Update polynomial
   state->add_polynomial();
@@ -515,8 +514,14 @@ void SystemManager::print_status() {
 
   // Wheel
   auto w_op = state->op->wheel;
-  if (w_op->enabled && up_whl->t_hist.size() > 2)
-    PRINT2(" WHL %.1f", (up_whl->t_hist.size() - 1) / (up_whl->t_hist.back() - up_whl->t_hist.front()));
+  if (w_op->enabled)
+  {
+    if(w_op->type == "Rover" && up_whl_rover->t_hist.size() > 2)
+      PRINT2(" WHL_RVR %.1f", (up_whl_rover->t_hist.size() - 1) / (up_whl_rover->t_hist.back() - up_whl_rover->t_hist.front()));
+
+    if (w_op->type != "Rover" && up_whl->t_hist.size() > 2)
+      PRINT2(" WHL %.1f", (up_whl->t_hist.size() - 1) / (up_whl->t_hist.back() - up_whl->t_hist.front()));
+  }
 
   PRINT2("\n");
 

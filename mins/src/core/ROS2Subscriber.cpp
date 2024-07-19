@@ -220,7 +220,7 @@ void ROS2Subscriber::callback_wheel(const JointState::SharedPtr msg) {
 void mins::ROS2Subscriber::callback_rover(const JointState::SharedPtr msg) {
   RoverWheelData data = ROS2Helper::JointState2DataRover(msg);
   sys->feed_measurement_rover(data);
-  PRINT1(YELLOW "[SUB] Rover measurement: %.3f\n", data.w_a);
+  PRINT1(YELLOW "[SUB] Rover measurement: %.3f|%.3f,%.3f\n" RESET, data.time, data.w_a, data.ph_a);
 }
 
 void ROS2Subscriber::callback_gnss(const NavSatFix::SharedPtr msg, int gps_id) {

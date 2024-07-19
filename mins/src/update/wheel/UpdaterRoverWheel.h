@@ -98,7 +98,9 @@ private:
    */
   void preintegration_3D(double dt, RoverWheelData data1, RoverWheelData data2);
 
-  void perform_calc(RoverWheelData data, Eigen::Vector3d w, Eigen::Vector3d v);
+  void perform_calc(RoverWheelData data, Eigen::Vector3d& w, Eigen::Vector3d& v);
+
+  void update_params();
 
   /**
    * @brief Collects a set of wheel measurements between time0 and time1
@@ -108,8 +110,12 @@ private:
    */
   bool select_wheel_data(double time0, double time1, std::vector<RoverWheelData> &data_vec);
 
+
   /// Our history of wheel messages (time, ang_left, ang_right)
   std::vector<RoverWheelData> data_stack;
+  
+  double r, b, t;
+  double px_a, px_b, px_c, px_d, py_a, py_b, py_c, py_d;
 
   /// preintegrated 2D measurement
   double th_2D;
