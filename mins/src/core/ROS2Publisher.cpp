@@ -427,6 +427,18 @@ void ROS2Publisher::publish_lidar_cloud(std::shared_ptr<pcl::PointCloud<pcl::Poi
   pub_lidar_cloud.at(stoi(lidar->header.frame_id))->publish(output);
 }
 
+void ROS2Publisher::reset_paths() {
+  if (sys->state->op->gps->enabled) {
+    path_gps.clear();
+  }
+
+  if (sys->state->op->vicon->enabled) {
+    path_vicon.clear();
+  }
+
+  path_imu.clear();
+}
+
 void ROS2Publisher::publish_lidar_map() {
   // Publish LiDAR map
   for (const auto &ikd : sys->up_ldr->ikd_data) {

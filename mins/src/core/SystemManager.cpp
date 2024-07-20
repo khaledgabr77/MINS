@@ -61,7 +61,11 @@
 using namespace std;
 using namespace mins;
 
-SystemManager::SystemManager(shared_ptr<OptionsEstimator> op, shared_ptr<Simulator> sim) {
+SystemManager::SystemManager(shared_ptr<OptionsEstimator> op, shared_ptr<Simulator> sim): op(op), sim(sim) {
+  init();
+}
+
+void SystemManager::init() {
   // Create "THE MOST IMPORTANT" state
   state = std::make_shared<State>(op, sim);
   tc_sensors = std::make_shared<TimeChecker>();

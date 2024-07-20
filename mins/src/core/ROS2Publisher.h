@@ -78,6 +78,8 @@ public:
   /// Publish lidar point cloud
   void publish_lidar_cloud(std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> lidar);
 
+  void reset_paths();
+
 private:
   /// Publish the current state
   void publish_state();

@@ -11,6 +11,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(image_geometry REQUIRED)  # Might require additional setup
 find_package(visualization_msgs REQUIRED)
 find_package(image_transport REQUIRED)  # Might require additional setup
@@ -22,7 +23,7 @@ find_package(pcl_conversions REQUIRED)
 find_package(ov_core REQUIRED)   # Might not be available as a ROS 2 package
 
 add_definitions(-DROS_AVAILABLE=2)
-ament_export_dependencies(rclcpp rosbag2 tf2_ros std_msgs geometry_msgs sensor_msgs nav_msgs image_geometry visualization_msgs image_transport cv_bridge ov_core pcl_conversions)
+ament_export_dependencies(rclcpp rosbag2 tf2_ros std_msgs geometry_msgs sensor_msgs nav_msgs std_srvs image_geometry visualization_msgs image_transport cv_bridge ov_core pcl_conversions)
 # ament_export_include_directories(src/)
 ament_export_libraries(mins_lib)
 
@@ -31,6 +32,7 @@ list(APPEND ament_libraries
         rosbag2
         tf2_ros
         std_msgs
+        std_srvs
         geometry_msgs
         visualization_msgs
         sensor_msgs
