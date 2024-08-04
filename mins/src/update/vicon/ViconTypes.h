@@ -35,6 +35,8 @@ struct ViconData {
   /// Pose measurement. First 3x1 is orientation, last 3x1 is position measurement
   Eigen::Matrix<double, 6, 1> pose;
 
+  Eigen::Matrix<double, 6, 6> cov;
+
   /// Sort function to allow for using of STL containers
   bool operator<(const ViconData &other) const { return time < other.time; }
 };

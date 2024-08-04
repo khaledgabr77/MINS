@@ -96,6 +96,8 @@ public:
 
   static ViconData PoseStamped2Data(const geometry_msgs::msg::PoseStamped::SharedPtr msg, int id);
 
+  static ViconData PoseStamped2Data(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg, int id);
+
   static GPSData PoseStamped2Data(const geometry_msgs::msg::PoseStamped::SharedPtr msg, int id, double noise);
 
   static std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> rosPC2pclPC(const sensor_msgs::msg::PointCloud2::SharedPtr msg, int id);
