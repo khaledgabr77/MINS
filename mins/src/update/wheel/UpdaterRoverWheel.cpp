@@ -36,7 +36,10 @@ using namespace std;
 using namespace ov_type;
 using namespace ov_core;
 
-UpdaterRoverWheel::UpdaterRoverWheel(StatePtr state) : state(state) { Chi = make_shared<UpdaterStatistics>(state->op->wheel->chi2_mult, "WHEEL"); }
+UpdaterRoverWheel::UpdaterRoverWheel(StatePtr state) : state(state) {
+  Chi = make_shared<UpdaterStatistics>(state->op->wheel->chi2_mult, "WHEEL");
+
+}
 
 void UpdaterRoverWheel::try_update() {
   // If we just want to update the oldest to newest
@@ -140,7 +143,7 @@ bool UpdaterRoverWheel::select_wheel_data(double time0, double time1, vector<Rov
 
   // Check we can reach the time1
   if (data_stack.at(data_stack.size() - 1).time <= time1 || data_stack.front().time > time0) {
-    PRINT1("[wheel]: Not enough wheel measurements to update.\n");
+    PRINT1("[wheel]: Not enough wheel measurements to update.");
     return false;
   }
 
@@ -308,11 +311,7 @@ void UpdaterRoverWheel::compute_linear_system_3D(MatrixXd &H, VectorXd &res, dou
 }
 
 void UpdaterRoverWheel::preintegration_intrinsics_3D(double dt, RoverWheelData data) {
-  // load measurement
-
-  double r = state->wheel_intrinsic->value()(0);
-  double b = state->wheel_intrinsic->value()(2);
-  double t = state->wheel_intrinsic->value()(1);
+  update_params();
 
   double phi_a, phi_b, phi_c, phi_d, w_a, w_b, w_c, w_d;
 
@@ -342,55 +341,37 @@ void UpdaterRoverWheel::preintegration_intrinsics_3D(double dt, RoverWheelData d
   vx = 0.25 * (vx_a + vx_b + vx_c + vx_d);
   vy = 0.25 * (vy_a + vy_b + vy_c + vy_d);
 
-  double px_a, px_b, px_c, px_d, py_a, py_b, py_c, py_d;
-
-  px_a = -b / 2;
-  py_a = t / 2;
-
-  px_b = b / 2;
-  py_b = t / 2;
-
-  px_c = b / 2;
-  py_c = t / 2;
-
-  px_d = -b / 2;
-  py_d = -t / 2;
-
-  double w_ = (((vx_a - vx) / -py_a) + ((vy_a - vy) / px_a) + ((vx_b - vx) / -py_b) + ((vy_b - vy) / px_b) + ((vx_c - vx) / -py_c) + ((vy_c - vy) / px_c) + ((vx_d - vx) / -py_d) +
+  double w_ = (((vx_a - vx) / -py_a) + ((vy_a - vy) / -px_a) + ((vx_b - vx) / py_b) + ((vy_b - vy) / px_b) + ((vx_c - vx) / -py_c) + ((vy_c - vy) / -px_c) + ((vx_d - vx) / py_d) +
                ((vy_d - vy) / px_d)) *
               0.125;
 
-  // Compute angular and linear velocity
-  Vector3d w(0., 0., w_);
-  Vector3d v(vx, vy, 0.);
-
+  Vector3d w(0, 0, w_), v(vx, vy, 0);
+  
   // Compute Jacobians of w and v respect to intrinsics
-  Matrix3d Hwx = Matrix3d::Zero();
-  Hwx(2, 0) = (b * (-w_a * cos(phi_a) - w_b * cos(phi_b) - w_c * cos(phi_c) + 3 * w_d * cos(phi_d)) +
-               2 * t * (-w_a * sin(phi_a) + w_b * sin(phi_b) + w_c * sin(phi_c) - w_d * sin(phi_d))) /
-              (8 * b * t);
-  // Ableiten nach b
-  Hwx(2, 1) = (w_a * sin(phi_a) - w_b * sin(phi_b) - w_c * sin(phi_c) + w_d * sin(phi_d)) / (4 * b * b);
-  // Ableiten nach t
-  Hwx(2, 2) = (w_a * cos(phi_a) + w_b * cos(phi_b) + w_c * cos(phi_c) - 3 * w_d * cos(phi_d)) / (8 * t * t);
+  Matrix3d Hv = Matrix3d::Zero();
+  Matrix3d Hw = Matrix3d::Zero();
 
-  Matrix3d Hvx = Matrix3d::Zero();
-  Hvx(0, 0) = 0.25 * (w_a * cos(phi_a) + w_b * cos(phi_b) + w_c * cos(phi_c) + w_d * cos(phi_d));
+  // Derived from symbolic differentiation using sympy
+  Hv(0) = 0.25 * (w_a * cos(phi_a) + w_b * cos(phi_b) + w_c * cos(phi_c) + w_d * cos(phi_d));
+  Hv(3) = 0.25 * (w_a * sin(phi_a) + w_b * sin(phi_b) + w_c * sin(phi_c) + w_d * sin(phi_d));
+
+  Hw(6) = 0.25 *
+          (b * (-w_a * cos(phi_a) + w_b * cos(phi_b) + w_c * cos(phi_c) - w_d * cos(phi_d)) + t * (w_a * sin(phi_a) + w_b * sin(phi_b) - w_c * sin(phi_c) - w_d * sin(phi_d))) /
+          (b * t);
+  Hw(7) = 0.25 * r * (-w_a * sin(phi_a) - w_b * sin(phi_b) + w_c * sin(phi_c) + w_d * sin(phi_d)) / pow(b, 2);
+  Hw(8) = 0.25 * r * (w_a * cos(phi_a) - w_b * cos(phi_b) - w_c * cos(phi_c) + w_d * cos(phi_d)) / pow(t, 2);
 
   // Compute Jacobians of integtrated measurement of this step
   Matrix3d R = exp_so3(-w * dt);
   Matrix3d Hth = Jl_so3(-w * dt) * dt;
 
   // integrate the intrinsic Jacobians
-  dp_di_3D = dp_di_3D - R_3D.transpose() * skew_x(v * dt) * dR_di_3D + R_3D.transpose() * Hvx * dt;
-  dR_di_3D = R * dR_di_3D + Hth * Hwx;
+  dp_di_3D = dp_di_3D - R_3D.transpose() * skew_x(v * dt) * dR_di_3D + R_3D.transpose() * Hv * dt;
+  dR_di_3D = R * dR_di_3D + Hth * Hw;
 }
 
-void UpdaterRoverWheel::perform_calc(RoverWheelData data, Vector3d w, Vector3d v) {
+void UpdaterRoverWheel::perform_calc(RoverWheelData data, Vector3d& w, Vector3d& v) {
 
-  double r = state->wheel_intrinsic->value()(0);
-  double b = state->wheel_intrinsic->value()(1);
-  double t = state->wheel_intrinsic->value()(2);
 
   double phi_a, phi_b, phi_c, phi_d, w_a, w_b, w_c, w_d;
 
@@ -420,7 +401,26 @@ void UpdaterRoverWheel::perform_calc(RoverWheelData data, Vector3d w, Vector3d v
   vx = 0.25 * (vx_a + vx_b + vx_c + vx_d);
   vy = 0.25 * (vy_a + vy_b + vy_c + vy_d);
 
-  double px_a, px_b, px_c, px_d, py_a, py_b, py_c, py_d;
+ double w_ = (
+    ((vx_a - vx) / -py_a) +
+    ((vy_a - vy) / -px_a) +
+    ((vx_b - vx) / py_b) + 
+    ((vy_b - vy) / px_b) +
+    ((vx_c - vx) / -py_c) + 
+    ((vy_c - vy) / -px_c) + 
+    ((vx_d - vx) / py_d) +
+    ((vy_d - vy) / px_d)
+    ) * 0.125;
+
+ w << 0.0, 0.0, w_;
+ v << vx, vy, 0.0;
+}
+
+void UpdaterRoverWheel::update_params()
+{
+  r = state->wheel_intrinsic->value()(0);
+  b = state->wheel_intrinsic->value()(2);
+  t = state->wheel_intrinsic->value()(1);
 
   px_a = -b / 2;
   py_a = t / 2;
@@ -429,16 +429,10 @@ void UpdaterRoverWheel::perform_calc(RoverWheelData data, Vector3d w, Vector3d v
   py_b = t / 2;
 
   px_c = b / 2;
-  py_c = t / 2;
+  py_c = -t / 2;
 
   px_d = -b / 2;
   py_d = -t / 2;
-
-  double w_ = (((vx_a - vx) / -py_a) + ((vy_a - vy) / px_a) + ((vx_b - vx) / -py_b) + ((vy_b - vy) / px_b) + ((vx_c - vx) / -py_c) + ((vy_c - vy) / px_c) + ((vx_d - vx) / -py_d) +
-               ((vy_d - vy) / px_d)) *
-              0.125;
-  w << 0.0, 0.0, w_;
-  v << vx, vy, 0.0;
 }
 
 void UpdaterRoverWheel::preintegration_3D(double dt, RoverWheelData data1, RoverWheelData data2) {
@@ -451,8 +445,10 @@ void UpdaterRoverWheel::preintegration_3D(double dt, RoverWheelData data1, Rover
   // compute the velocities at the odometry frame
   Vector3d w_hat1, v_hat1, w_hat2, v_hat2;
 
+  update_params();
   perform_calc(data1, w_hat1, v_hat1);
   perform_calc(data2, w_hat2, v_hat2);
+
 
   // =========================================================
   // Compute means
@@ -562,7 +558,7 @@ void UpdaterRoverWheel::feed_measurement(RoverWheelData data) {
       ++it;
   }
 
-  t_hist.size() > 100 ? t_hist.pop_front() : void(); // remove if we have too many
+  t_hist.size() > 500 ? t_hist.pop_front() : void(); // remove if we have too many
   t_hist.push_back(data.time);
 }
 

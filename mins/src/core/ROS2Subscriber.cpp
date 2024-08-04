@@ -139,9 +139,12 @@ ROS2Subscriber::ROS2Subscriber(std::shared_ptr<rclcpp::Node> node, std::shared_p
   }
 
   if (op->tlio->enabled) {
-    subs.push_back(node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(op->tlio->topic, rclcpp::QoS(100), std::bind(&ROS2Subscriber::callback_tlio, this, std::placeholders::_1)));
+    subs.push_back(node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(op->tlio->topic, rclcpp::QoS(100),
+                                                                                            std::bind(&ROS2Subscriber::callback_tlio, this, std::placeholders::_1)));
     PRINT2("Subscribing to TLIO: %s\n", op->tlio->topic.c_str());
   }
+
+  reset_srv = node->create_service<std_srvs::srv::Empty>("/mins/reset", std::bind(&ROS2Subscriber::reset_service, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void ROS2Subscriber::callback_inertial(const Imu::SharedPtr msg) {
@@ -220,7 +223,7 @@ void ROS2Subscriber::callback_wheel(const JointState::SharedPtr msg) {
 void mins::ROS2Subscriber::callback_rover(const JointState::SharedPtr msg) {
   RoverWheelData data = ROS2Helper::JointState2DataRover(msg);
   sys->feed_measurement_rover(data);
-  PRINT1(YELLOW "[SUB] Rover measurement: %.3f\n", data.w_a);
+  PRINT1(YELLOW "[SUB] Rover measurement: %.3f|%.3f,%.3f\n" RESET, data.time, data.w_a, data.ph_a);
 }
 
 void ROS2Subscriber::callback_gnss(const NavSatFix::SharedPtr msg, int gps_id) {
@@ -242,4 +245,10 @@ void ROS2Subscriber::callback_lidar(const PointCloud2::SharedPtr msg, int lidar_
   sys->feed_measurement_lidar(data);
   pub->publish_lidar_cloud(data);
   PRINT1(YELLOW "[SUB] LiDAR measurement: %.3f|%d\n" RESET, (double)msg->header.stamp.sec / 1000, lidar_id);
+}
+
+void ROS2Subscriber::reset_service(std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response) {
+  PRINT2("RESETTING Service!");
+  sys->init();
+  pub->reset_paths();
 }

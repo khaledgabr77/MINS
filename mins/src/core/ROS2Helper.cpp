@@ -231,15 +231,15 @@ RoverWheelData mins::ROS2Helper::JointState2DataRover(const sensor_msgs::msg::Jo
   RoverWheelData data;
   data.time = rclcpp::Time(msg->header.stamp).seconds();
 
-  data.w_a = msg->velocity.at(0);
-  data.w_b = msg->velocity.at(1);
-  data.w_c = msg->velocity.at(2);
+  data.w_a = msg->velocity.at(2);
+  data.w_b = msg->velocity.at(0);
+  data.w_c = msg->velocity.at(1);
   data.w_d = msg->velocity.at(3);
 
-  data.ph_a = msg->position.at(4);
-  data.ph_b = msg->position.at(5);
-  data.ph_c = msg->position.at(6);
-  data.ph_d = msg->position.at(7);
+  data.ph_a = msg->position.at(2 + 4);
+  data.ph_b = msg->position.at(0 + 4);
+  data.ph_c = msg->position.at(1 + 4);
+  data.ph_d = msg->position.at(3 + 4);
 
   return data;
 }

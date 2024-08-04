@@ -28,6 +28,7 @@
 #ifndef MINS_ROSSUBSCRIBER_H
 #define MINS_ROSSUBSCRIBER_H
 
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -37,7 +38,7 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
-#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "std_srvs/srv/empty.hpp"
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
@@ -78,7 +79,9 @@ public:
   void callback_stereo_I(const Image::ConstSharedPtr msg0, const Image::ConstSharedPtr msg1, int cam_id0, int cam_id1);
   void callback_stereo_C(const CompressedImage::ConstSharedPtr msg0, const CompressedImage::ConstSharedPtr msg1, int cam_id0, int cam_id1);
 
-  void callback_tlio(const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr msg) ;
+  void callback_tlio(const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr msg);
+
+  void reset_service(std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response);
 
 private:
   /// Global node handler
@@ -106,6 +109,8 @@ private:
 
   typedef message_filters::sync_policies::ApproximateTime<CompressedImage, CompressedImage> csync_pol;
   vector<shared_ptr<message_filters::Synchronizer<csync_pol>>> csync_cam;
+
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv;
 };
 } // namespace mins
 

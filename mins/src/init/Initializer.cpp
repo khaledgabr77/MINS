@@ -51,6 +51,7 @@
 #include "update/lidar/UpdaterLidar.h"
 #include "update/lidar/ikd_Tree.h"
 #include "update/wheel/UpdaterWheel.h"
+#include "update/wheel/UpdaterRoverWheel.h"
 #include "update/wheel/WheelTypes.h"
 #include "utils/Print_Logger.h"
 #include "utils/TimeChecker.h"
@@ -181,11 +182,19 @@ void Initializer::delete_old_measurements() {
     // wheel
     if (state->op->wheel->enabled) {
       int del_whl = 0;
-      for (auto data = up_whl->data_stack.begin(); !up_whl->data_stack.empty() && (*data).time < old_time;) {
-        del_whl++;
-        data = up_whl->data_stack.erase(data);
+      if(state->op->wheel->type != "Rover"){
+        for (auto data = up_whl->data_stack.begin(); !up_whl->data_stack.empty() && (*data).time < old_time;) {
+          del_whl++;
+          data = up_whl->data_stack.erase(data);
+        }
+        del_whl > 0 ? PRINT1(YELLOW "[INIT]: Delete Wheel stack. Del: %d, Remain: %d\n" RESET, del_whl, up_whl->data_stack.size()) : void();
+      } else {
+        for (auto data = up_whl_rvr->data_stack.begin(); !up_whl_rvr->data_stack.empty() && (*data).time < old_time;) {
+          del_whl++;
+          data = up_whl_rvr->data_stack.erase(data);
+        }
+        del_whl > 0 ? PRINT1(YELLOW "[INIT]: Delete Wheel stack. Del: %d, Remain: %d\n" RESET, del_whl, up_whl_rvr->data_stack.size()) : void();
       }
-      del_whl > 0 ? PRINT1(YELLOW "[INIT]: Delete Wheel stack. Del: %d, Remain: %d\n" RESET, del_whl, up_whl->data_stack.size()) : void();
     }
 
     // lidar

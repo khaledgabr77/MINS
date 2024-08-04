@@ -72,6 +72,8 @@ public:
 
   ~SystemManager(){};
 
+  void init();
+
   /// IMU measurement feeder
   bool feed_measurement_imu(const ov_core::ImuData &imu);
 
@@ -100,6 +102,9 @@ public:
    * @brief After the run has ended, print results
    */
   void visualize_final();
+
+  std::shared_ptr<OptionsEstimator> op;
+  std::shared_ptr<Simulator> sim;
 
   /// Our master state object :D
   std::shared_ptr<State> state;
