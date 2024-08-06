@@ -252,6 +252,28 @@ ViconData ROS2Helper::PoseStamped2Data(const geometry_msgs::msg::PoseStamped::Sh
   vicon.id = id;
   vicon.pose.block(0, 0, 3, 1) = ov_core::log_so3(ov_core::quat_2_Rot(q));
   vicon.pose.block(3, 0, 3, 1) = p;
+
+  return vicon;
+}
+
+ViconData ROS2Helper::PoseStamped2Data(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg, int id) {
+  
+  Eigen::Vector4d q(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+  Eigen::Vector3d p(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
+  ViconData vicon;
+  vicon.time = rclcpp::Time(msg->header.stamp).seconds();
+  vicon.id = id;
+  vicon.pose.block(0, 0, 3, 1) = ov_core::log_so3(ov_core::quat_2_Rot(q));
+  vicon.pose.block(3, 0, 3, 1) = p;
+
+  Eigen::Matrix<double, 6, 6> cov();
+
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 6; ++j) {
+      vicon.cov(i, j) = msg->pose.covariance.data()[i * 6 + j];
+    }
+  }
+
   return vicon;
 }
 
