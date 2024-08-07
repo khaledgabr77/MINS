@@ -64,8 +64,8 @@ using namespace Eigen;
 using namespace mins;
 using namespace ov_core;
 
-Initializer::Initializer(shared_ptr<State> state, PP pp_imu, UP_WHL up_whl, UP_WHL_RVR up_whl_rvr, UP_TLIO up_tlio, UP_GPS up_gps, UP_CAM up_cam, UP_LDR up_ldr, SIM sim)
-    : sim(sim), pp_imu(pp_imu), up_gps(up_gps), up_tlio(up_tlio), up_whl(up_whl), up_whl_rvr(up_whl_rvr), up_ldr(up_ldr), up_cam(up_cam), state(state) {
+Initializer::Initializer(shared_ptr<State> state, PP pp_imu, UP_WHL up_whl, UP_WHL_RVR up_whl_rvr, UP_GPS up_gps, UP_CAM up_cam, UP_LDR up_ldr, SIM sim)
+    : sim(sim), pp_imu(pp_imu), up_gps(up_gps), up_whl(up_whl), up_whl_rvr(up_whl_rvr), up_ldr(up_ldr), up_cam(up_cam), state(state) {
 
   tc = make_shared<TimeChecker>();
 

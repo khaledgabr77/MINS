@@ -35,7 +35,6 @@ class UpdaterWheel;
 class UpdaterRoverWheel;
 class UpdaterGPS;
 class UpdaterLidar;
-class UpdaterTLIO;
 class UpdaterCamera;
 class IW_Initializer;
 class I_Initializer;
@@ -47,12 +46,11 @@ typedef shared_ptr<UpdaterGPS> UP_GPS;
 typedef shared_ptr<UpdaterLidar> UP_LDR;
 typedef shared_ptr<UpdaterCamera> UP_CAM;
 typedef shared_ptr<Simulator> SIM;
-typedef shared_ptr<UpdaterTLIO> UP_TLIO;
 
 class Initializer {
 public:
   /// State initializer
-  Initializer(shared_ptr<State> state, PP pp_imu, UP_WHL up_whl, UP_WHL_RVR up_whl_rvr, UP_TLIO up_tlio, UP_GPS up_gps, UP_CAM up_cam, UP_LDR up_ldr, SIM sim = nullptr);
+  Initializer(shared_ptr<State> state, PP pp_imu, UP_WHL up_whl, UP_WHL_RVR up_whl_rvr, UP_GPS up_gps, UP_CAM up_cam, UP_LDR up_ldr, SIM sim = nullptr);
 
   /// Initialization
   bool try_initializtion();
@@ -83,7 +81,6 @@ private:
   /// Each sensor handler
   shared_ptr<Propagator> pp_imu;
   shared_ptr<UpdaterGPS> up_gps;
-  shared_ptr<UpdaterTLIO> up_tlio;
   shared_ptr<UpdaterWheel> up_whl;
   shared_ptr<UpdaterRoverWheel> up_whl_rvr;
   shared_ptr<UpdaterLidar> up_ldr;

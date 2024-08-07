@@ -31,9 +31,12 @@ struct ViconData {
 
   /// ID of the vicon
   int id;
+  
 
   /// Pose measurement. First 3x1 is orientation, last 3x1 is position measurement
   Eigen::Matrix<double, 6, 1> pose;
+
+  bool has_cov = false;
 
   Eigen::Matrix<double, 6, 6> cov;
 

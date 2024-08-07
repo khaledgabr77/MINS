@@ -31,7 +31,6 @@
 #include "OptionsIMU.h"
 #include "OptionsInit.h"
 #include "OptionsLidar.h"
-#include "OptionsTLIO.h"
 #include "OptionsVicon.h"
 #include "OptionsWheel.h"
 #include "utils/Print_Logger.h"
@@ -95,7 +94,6 @@ void mins::OptionsEstimator::load(const std::shared_ptr<ov_core::YamlParser> &pa
   vicon = make_shared<OptionsVicon>();
   cam = make_shared<OptionsCamera>();
   imu = make_shared<OptionsIMU>();
-  tlio = make_shared<OptionsTLIO>();
   init->load(parser);
   imu->load(parser);
   cam->load(parser);
@@ -103,7 +101,6 @@ void mins::OptionsEstimator::load(const std::shared_ptr<ov_core::YamlParser> &pa
   wheel->load(parser);
   lidar->load(parser);
   vicon->load(parser);
-  tlio->load(parser);
 }
 
 void mins::OptionsEstimator::print() {
@@ -127,7 +124,6 @@ void mins::OptionsEstimator::print() {
   wheel->print();
   lidar->print();
   init->print();
-  tlio->print();
 }
 
 void mins::OptionsEstimator::load_print(const std::shared_ptr<ov_core::YamlParser> &parser) {

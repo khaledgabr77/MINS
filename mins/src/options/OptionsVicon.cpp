@@ -51,6 +51,10 @@ void mins::OptionsVicon::load_i(const std::shared_ptr<ov_core::YamlParser> &pars
   parser->parse_external(f, "vicon" + std::to_string(i), "timeoffset", toff);
   dt.insert({i, toff});
 
+  bool has_cov = false;
+  parser->parse_external(f, "vicon" + std::to_string(i), "with_cov", has_cov);
+  with_cov.insert({i, has_cov});
+
   // Extrinsics
   Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
   parser->parse_external(f, "vicon" + std::to_string(i), "T_imu_vicon", T);
@@ -93,5 +97,6 @@ void mins::OptionsVicon::print_i(int i) {
   PRINT1("\t\t\t- [%6.3f, %6.3f, %6.3f, %6.3f]\n", R(1), R(4), R(7), p(1));
   PRINT1("\t\t\t- [%6.3f, %6.3f, %6.3f, %6.3f]\n", R(2), R(5), R(8), p(2));
   PRINT1("\t\t\t- [ 0.000,  0.000,  0.000,  1.000]\n");
+  PRINT1("\t\t- with covariance: %s\n", with_cov.at(i) ? "true" : "false");
   PRINT1("\t\t- topic: %s\n", topic.at(i).c_str());
 }

@@ -71,6 +71,9 @@ public:
   /// Callback for LiDAR
   void callback_lidar(const PointCloud2::SharedPtr msg, int lidar_id);
 
+  void callback_vicon(const geometry_msgs::msg::PoseStamped::SharedPtr msg, int vicon_id);
+  void callback_vicon(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg, int vicon_id);
+
   /// Callback for monocular camera (image, compressed image)
   void callback_monocular_I(const Image::ConstSharedPtr msg, int cam_id);
   void callback_monocular_C(const CompressedImage::ConstSharedPtr msg, int cam_id);
@@ -79,7 +82,6 @@ public:
   void callback_stereo_I(const Image::ConstSharedPtr msg0, const Image::ConstSharedPtr msg1, int cam_id0, int cam_id1);
   void callback_stereo_C(const CompressedImage::ConstSharedPtr msg0, const CompressedImage::ConstSharedPtr msg1, int cam_id0, int cam_id1);
 
-  void callback_tlio(const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr msg);
 
   void reset_service(std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response);
 

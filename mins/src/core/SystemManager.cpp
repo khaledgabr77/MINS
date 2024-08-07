@@ -31,7 +31,6 @@
 #include "options/OptionsEstimator.h"
 #include "options/OptionsGPS.h"
 #include "options/OptionsLidar.h"
-#include "options/OptionsTLIO.h"
 #include "options/OptionsVicon.h"
 #include "options/OptionsWheel.h"
 #include "state/Propagator.h"
@@ -46,8 +45,6 @@
 #include "update/gps/MathGPS.h"
 #include "update/gps/UpdaterGPS.h"
 #include "update/lidar/UpdaterLidar.h"
-#include "update/tlio/TLIOTypes.h"
-#include "update/tlio/UpdaterTLIO.h"
 #include "update/vicon/UpdaterVicon.h"
 #include "update/vicon/ViconTypes.h"
 #include "update/wheel/UpdaterRoverWheel.h"
@@ -83,12 +80,11 @@ void SystemManager::init() {
   }
   state->op->lidar->enabled ? up_ldr = make_shared<UpdaterLidar>(state) : shared_ptr<UpdaterLidar>();
 
-  state->op->tlio->enabled ? up_tlio = make_shared<UpdaterTLIO>(state) : shared_ptr<UpdaterTLIO>();
 
   // Propagator & Initializer
   prop = std::make_shared<Propagator>(state);
   state->op->use_imu_res ? state->hook_propagator(prop) : void();
-  initializer = std::make_shared<Initializer>(state, prop, up_whl, up_whl_rover, up_tlio, up_gps, up_cam, up_ldr, sim);
+  initializer = std::make_shared<Initializer>(state, prop, up_whl, up_whl_rover, up_gps, up_cam, up_ldr, sim);
 
   // Average interpolation order and cloning frequency
   avg_order = make_shared<STAT>();
@@ -201,15 +197,6 @@ void SystemManager::feed_measurement_rover(const RoverWheelData &wheel) {
   state->initialized ? tc_sensors->dong("WHL") : void();
 }
 
-void mins::SystemManager::feed_measurement_tlio(const TLIOData &tlio) {
-  if (!state->op->tlio->enabled) {
-    return;
-  }
-  state->initialized ? tc_sensors->ding("TLIO") : void();
-  up_tlio->feed_measurement(tlio);
-  state->initialized ? up_tlio->try_update() : void();
-  state->initialized ? tc_sensors->dong("TLIO") : void();
-}
 
 void SystemManager::feed_measurement_lidar(std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> lidar) {
   if (!state->op->lidar->enabled)

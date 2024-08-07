@@ -64,6 +64,8 @@ struct OptionsVicon {
   /// Map between vicon id and extrinsics (q_ItoV, p_IinV). Default value identity
   std::map<size_t, Eigen::VectorXd> extrinsics;
 
+  std::map<size_t, bool> with_cov;
+
   /// Bool to determine whether or not to calibrate timeoffset
   bool do_calib_dt = false;
 

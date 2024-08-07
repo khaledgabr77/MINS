@@ -34,11 +34,11 @@
 #include "options/OptionsGPS.h"
 #include "options/OptionsIMU.h"
 #include "options/OptionsLidar.h"
-#include "options/OptionsTLIO.h"
+#include "options/OptionsVicon.h"
 #include "options/OptionsWheel.h"
 #include "state/State.h"
 #include "update/gps/GPSTypes.h"
-#include "update/tlio/TLIOTypes.h"
+#include "update/vicon/ViconTypes.h"
 #include "update/wheel/WheelTypes.h"
 #include "utils/Print_Logger.h"
 
@@ -138,10 +138,18 @@ ROS2Subscriber::ROS2Subscriber(std::shared_ptr<rclcpp::Node> node, std::shared_p
     }
   }
 
-  if (op->tlio->enabled) {
-    subs.push_back(node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(op->tlio->topic, rclcpp::QoS(100),
-                                                                                            std::bind(&ROS2Subscriber::callback_tlio, this, std::placeholders::_1)));
-    PRINT2("Subscribing to TLIO: %s\n", op->tlio->topic.c_str());
+  if (op->vicon->enabled) {
+    for (int i = 0; i < op->vicon->max_n; i++) {
+      if (op->vicon->with_cov.at(i)) {
+        subs.push_back(node->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            op->vicon->topic.at(i), rclcpp::QoS(100), [this, i](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) { this->callback_vicon(msg, i); }));
+        PRINT2("subscribing to Vicon (with cov): %s\n", op->vicon->topic.at(i).c_str());
+      } else {
+        subs.push_back(node->create_subscription<geometry_msgs::msg::PoseStamped>(op->vicon->topic.at(i), rclcpp::QoS(100),
+                                                                                  [this, i](const geometry_msgs::msg::PoseStamped::SharedPtr msg) { this->callback_vicon(msg, i); }));
+        PRINT2("subscribing to Vicon (no cov): %s\n", op->vicon->topic.at(i).c_str());
+      }
+    }
   }
 
   reset_srv = node->create_service<std_srvs::srv::Empty>("/mins/reset", std::bind(&ROS2Subscriber::reset_service, this, std::placeholders::_1, std::placeholders::_2));
@@ -193,10 +201,6 @@ void ROS2Subscriber::callback_stereo_I(const Image::ConstSharedPtr msg0, const I
   }
 }
 
-void ROS2Subscriber::callback_tlio(const geometry_msgs::msg::PoseWithCovarianceStamped::ConstSharedPtr msg) {
-  auto m = ROS2Helper::Pose2TLIO(msg);
-  sys->feed_measurement_tlio(m);
-}
 
 void ROS2Subscriber::callback_stereo_C(const CompressedImage::ConstSharedPtr msg0, const CompressedImage::ConstSharedPtr msg1, int cam_id0, int cam_id1) {
   // convert into correct format & send it to our system
@@ -251,4 +255,16 @@ void ROS2Subscriber::reset_service(std::shared_ptr<std_srvs::srv::Empty::Request
   PRINT2("RESETTING Service!");
   sys->init();
   pub->reset_paths();
+}
+
+void ROS2Subscriber::callback_vicon(const geometry_msgs::msg::PoseStamped::SharedPtr msg, int vicon_id) {
+  ViconData d = ROS2Helper::PoseStamped2Data(msg, vicon_id);
+  sys->feed_measurement_vicon(d);
+  PRINT1(YELLOW "[SUB] Vicon measurement: \n" RESET);
+}
+
+void ROS2Subscriber::callback_vicon(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg, int vicon_id) {
+  ViconData d = ROS2Helper::PoseStamped2Data(msg, vicon_id);
+  sys->feed_measurement_vicon(d);
+  PRINT1(YELLOW "[SUB] Vicon measurement: \n" RESET);
 }

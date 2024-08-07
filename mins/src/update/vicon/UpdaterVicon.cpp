@@ -147,7 +147,12 @@ bool UpdaterVicon::update(ViconData m) {
   //=========================================================================
   // Noise Covariance
   //=========================================================================
-  MatrixXd R = m.cov;
+  MatrixXd R = m.has_cov ? m.cov : MatrixXd::Zero(6, 6);
+
+  if (!m.has_cov) {
+    R.block(0, 0, 3, 3).noalias() = Matrix3d::Identity() * pow(state->op->vicon->noise_o, 2);
+    R.block(3, 3, 3, 3).noalias() = Matrix3d::Identity() * pow(state->op->vicon->noise_p, 2);
+  }
   // TODO: Use cov from measurement
 
   MatrixXd intr_cov = state->intr_pose_cov(state->op->clone_freq, state->op->intr_order);
