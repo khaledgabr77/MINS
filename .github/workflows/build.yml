@@ -33,11 +33,8 @@ jobs:
     - name: Run Docker container to build ROS packages
       run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
 
-    - name: Zip the install folder
-      run: zip -r ros_install.zip install
-
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ros_install
-        path: ros_install.zip
+        name: mins_install
+        path: install/
