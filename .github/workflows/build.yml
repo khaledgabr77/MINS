@@ -35,8 +35,8 @@ jobs:
     - name: Run Docker container to build ROS packages
       run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
 
-    - name: Zip the install folder
-      run: zip -r ros_install.zip install
+    - name: Create a tar.gz archive of the install folder
+      run: tar -czvf ros_install.tar.gz -C install .
 
     - name: Create Release
       id: create_release
@@ -47,14 +47,18 @@ jobs:
         draft: false
         prerelease: false
         generate_release_notes: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ros_install.zip
-        asset_name: ros_install.zip
-        asset_content_type: application/zip
+        asset_path: ros_install.tar.gz
+        asset_name: ros_install.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Save build cache
       if: steps.cache-build.outputs.cache-hit != 'true'
