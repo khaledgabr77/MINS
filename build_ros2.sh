@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo chown $USER build
+sudo chown -R $USER build
 source /opt/ros/humble/setup.bash
 colcon build --paths thirdparty/*
 source install/setup.bash
