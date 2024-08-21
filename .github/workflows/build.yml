@@ -31,7 +31,7 @@ jobs:
       run: docker build --target builder --tag ros-build -f Dockerfile_humble_22_04 .
 
     - name: Run Docker container to build ROS packages
-      run: docker run --rm -v ${{ github.workspace }}:/work ros-build bash /work/src/MINS/build_ros2.sh
+      run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
 
     - name: Zip the install folder
       run: zip -r ros_install.zip install
