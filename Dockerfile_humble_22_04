@@ -21,7 +21,7 @@ USER ros
 
 COPY . /work/src/MINS
 
-RUN bash /work/src/MINS/build_ros2.sh
+RUN --mount=type=cache,target=/work/build bash /work/src/MINS/build_ros2.sh
 
 RUN echo "source '/work/install/setup.bash'" >> ~/.bashrc
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 source /opt/ros/humble/setup.bash
-colcon build --paths src/MINS/thirdparty/*
+colcon build --paths thirdparty/*
 source install/setup.bash
-colcon build --paths src/MINS/thirdparty/open_vins/*
+colcon build --paths thirdparty/open_vins/*
 source install/setup.bash
-colcon build --paths src/MINS/{mins,mins_data}
+colcon build --paths {mins,mins_data}
 source install/setup.bash
-colcon build --paths src/MINS/mins_eval
+colcon build --paths mins_eval
