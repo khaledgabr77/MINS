@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 sudo chown -R ros:ros build/
 
 source /opt/ros/humble/setup.bash
