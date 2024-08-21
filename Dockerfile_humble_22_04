@@ -1,4 +1,4 @@
-FROM ros:humble-perception-jammy
+FROM ros:humble-perception-jammy as builder
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
 RUN --mount=type=cache,target=/var/cache/apt apt-get update --fix-missing && apt-get upgrade -y
@@ -16,6 +16,8 @@ RUN useradd -ms /bin/bash ros &&\
   usermod -aG sudo ros &&\
   echo "ros ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
   echo "ros:ros" | chpasswd
+
+FROM builder
 
 USER ros
 

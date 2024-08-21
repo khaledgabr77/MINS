@@ -1,0 +1,43 @@
+name: Build and Package ROS Install Folder
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch
+  pull_request:
+    branches:
+      - main  # Change this to your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build Docker image
+      run: docker build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --target builder --tag ros-build -f Dockerfile_humble_22_04 .
+
+    - name: Run Docker container to build ROS packages
+      run: docker run --rm -v ${{ github.workspace }}:/work ros-build bash /work/src/MINS/build_ros2.sh
+
+    - name: Zip the install folder
+      run: zip -r ros_install.zip install
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ros_install
+        path: ros_install.zip
