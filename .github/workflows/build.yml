@@ -35,12 +35,26 @@ jobs:
     - name: Run Docker container to build ROS packages
       run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
 
+    - name: Zip the install folder
+      run: zip -r ros_install.zip install
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
       with:
-        name: mins_install
-        path: install/
+        tag_name: latest-build
+        release_name: Latest Build
+        draft: false
+        prerelease: false
+        generate_release_notes: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ros_install.zip
+        asset_name: ros_install.zip
+        asset_content_type: application/zip
 
     - name: Save build cache
       if: steps.cache-build.outputs.cache-hit != 'true'
