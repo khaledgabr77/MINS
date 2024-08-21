@@ -19,22 +19,31 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Cache Docker layers
+    - name: Restore build cache
+      id: cache-build
       uses: actions/cache@v3
       with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        path: build
+        key: ${{ runner.os }}-build-${{ hashFiles('**/src/**') }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-build-
 
     - name: Build Docker image
       run: docker build --target builder --tag ros-build -f Dockerfile_humble_22_04 .
 
+
     - name: Run Docker container to build ROS packages
       run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
+
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: mins_install
         path: install/
+
+    - name: Save build cache
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      uses: actions/cache@v3
+      with:
+        path: build
