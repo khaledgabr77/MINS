@@ -433,6 +433,7 @@ void UpdaterRoverWheel::update_params()
 
   px_d = -b / 2;
   py_d = -t / 2;
+  PRINT1("[wheel]: Wheel positions: %.2f/%.2f, %.2f/%.2f, %.2f/%.2f, %.2f/%.2f.\n", px_a, py_a, px_b, py_b, px_c, py_c, px_d, py_d);
 }
 
 void UpdaterRoverWheel::preintegration_3D(double dt, RoverWheelData data1, RoverWheelData data2) {
