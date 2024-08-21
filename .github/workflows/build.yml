@@ -28,7 +28,7 @@ jobs:
           ${{ runner.os }}-buildx-
 
     - name: Build Docker image
-      run: docker build --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache --target builder --tag ros-build -f Dockerfile_humble_22_04 .
+      run: docker build --target builder --tag ros-build -f Dockerfile_humble_22_04 .
 
     - name: Run Docker container to build ROS packages
       run: docker run --rm -v ${{ github.workspace }}:/work ros-build bash /work/src/MINS/build_ros2.sh
