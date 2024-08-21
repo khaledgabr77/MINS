@@ -2,6 +2,8 @@
 
 sudo chown -R ros:ros build/
 
+ls -l build/
+
 source /opt/ros/humble/setup.bash
 colcon build --paths thirdparty/*
 source install/setup.bash
