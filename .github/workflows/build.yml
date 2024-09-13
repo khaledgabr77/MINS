@@ -18,7 +18,9 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-
+      with:
+        install: true
+        
     - name: Restore build cache
       id: cache-build
       uses: actions/cache@v3
@@ -66,3 +68,39 @@ jobs:
       with:
         path: build
         key: ${{ runner.os }}-build-${{ hashFiles('**/src/**') }}
+
+        
+    - name: Restore build cache
+      id: cache-build-arm
+      uses: actions/cache@v3
+      with:
+        path: build-arm
+        key: ${{ runner.os }}-build-arm-${{ hashFiles('**/src/**') }}
+        restore-keys: |
+          ${{ runner.os }}-build-arm
+
+    - name: Build Docker image
+      run: docker buildx build --platform linux/arm64 --target builder --tag ros-build:arm64 -f Dockerfile_humble_22_04 --load .
+
+    - name: Run Docker container to build ROS packages
+      run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build:arm64 bash /work/build_ros2.sh
+      
+    - name: Create a tar.gz archive of the install folder
+      run: tar -czvf ros_install-arm.tar.gz -C install .
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ros_install-arm.tar.gz
+        asset_name: ros_install-arm.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Save build cache
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      uses: actions/cache@v3
+      with:
+        path: build
+        key: ${{ runner.os }}-build-arm-${{ hashFiles('**/src/**') }}
