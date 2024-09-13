@@ -31,11 +31,11 @@ jobs:
           ${{ runner.os }}-build-
 
     - name: Build Docker image
-      run: docker build --target builder --tag ros-build -f Dockerfile_humble_22_04 .
+      run: docker build --target builder --tag ros-build:main -f Dockerfile_humble_22_04 .
 
 
     - name: Run Docker container to build ROS packages
-      run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build bash /work/build_ros2.sh
+      run: docker run --rm -v ${{ github.workspace }}:/work -w /work ros-build:main bash /work/build_ros2.sh
 
     - name: Create a tar.gz archive of the install folder
       run: tar -czvf ros_install.tar.gz -C install .
